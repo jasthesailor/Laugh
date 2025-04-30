@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Laughter Quotient Survey</title>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCa4oUK8iJCHmkQnQw53U0EgfwisKDQ7XA",
+      authDomain: "laughter-index.firebaseapp.com",
+      projectId: "laughter-index",
+      storageBucket: "laughter-index.appspot.com",
+      messagingSenderId: "803710298025",
+      appId: "1:803710298025:web:3a3253e463b5bce46606b8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.startSurvey = function () {
+      document.getElementById('welcome').style.display = 'none';
+      document.getElementById('survey-form').style.display = 'block';
+    }
+
+    window.submitSurvey = async function () {
+      const form = document.getElementById('form');
+      const data = Object.fromEntries(new FormData(form).entries());
+
+      // Check required fields
+      const requiredFields = ["q1","q2","q3","q5","q7","q9","q10","q11","q12"];
+      for (const field of requiredFields) {
+        if (!data[field]) {
+          alert("Please answer all questions before submitting.");
+          return;
+        }
+      }
+
+      // Q4 and Q6 max 2 checkboxes
+      const q4 = form.querySelectorAll('input[name="q4"]:checked');
+      const q6 = form.querySelectorAll('input[name="q6"]:checked');
+      if (q4.length === 0 || q4.length > 2) {
+        alert("Please select up to 2 options for Question 4.");
+        return;
+      }
+      if (q6.length === 0 || q6.length > 2) {
+        alert("Please select up to 2 options for Question 6.");
+        return;
+      }
+
+      data.q4 = Array.from(q4).map(cb => cb.value).join(", ");
+      data.q6 = Array.from(q6).map(cb => cb.value).join(", ");
+
+      try {
+        await addDoc(collection(db, 'laughterSurvey'), data);
+        form.reset();
+        document.getElementById('survey-form').style.display = 'none';
+        document.getElementById('thank-you').style.display = 'block';
+      } catch (e) {
+        alert('Error saving data: ' + e);
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #d4fc79, #a1c4fd);
+      margin: 0;
+      padding: 20px;
+      color: #222;
+    }
+    h1, h2 {
+      text-align: center;
+      color: #3b8b5e;
+    }
+    .container {
+      max-width: 750px;
+      margin: auto;
+      background: #ffffffee;
+      padding: 2rem;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      border-radius: 20px;
+    }
+    label {
+      display: block;
+      margin-top: 24px;
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+    textarea, input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #3b8b5e;
+      border-radius: 12px;
+      margin-top: 8px;
+      background-color: #f7fff9;
+      font-size: 1rem;
+    }
+    .options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .option-btn {
+      flex: 1 1 auto;
+      padding: 10px 14px;
+      background-color: #c8f5ff;
+      border: 2px solid #3b8b5e;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: center;
+      font-size: 1rem;
+    }
+    .option-btn:hover {
+      background-color: #3b8b5e;
+      color: white;
+    }
+    input[type="radio"], input[type="checkbox"] {
+      margin-right: 8px;
+    }
+    button {
+      background-color: #3b8b5e;
+      color: white;
+      padding: 14px 28px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      margin-top: 30px;
+      font-size: 18px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .emoji {
+      font-size: 2.5rem;
+      margin-bottom: 1.2rem;
+      text-align: center;
+    }
+    #survey-form, #thank-you {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="welcome">
+    <div class="emoji">😄🎉🤣</div>
+    <h1>Welcome to the Laughter Quotient Survey!</h1>
+    <p style="text-align:center">Let’s explore how laughter fits into your life. This fun, quick survey is part of Ketawa’s Laughter Festival 🇮🇳</p>
+    <div style="text-align:center">
+      <button onclick="startSurvey()">Start Survey 🚀</button>
+    </div>
+  </div>
+
+  <div class="container" id="survey-form">
+    <form id="form" onsubmit="event.preventDefault(); submitSurvey();">
+  <label>Q1. What does laughter mean to you?
+    <textarea name="q1" required></textarea>
+  </label>
+
+  <label>Q2. Importance of laughter:</label>
+  <div class="options">
+    <label class="option-btn"><input type="radio" name="q2" value="Extremely important" required> 😊 Extremely important</label>
+    <label class="option-btn"><input type="radio" name="q2" value="Somewhat important" required> 🙂 Somewhat important</label>
+    <label class="option-btn"><input type="radio" name="q2" value="Neutral" required> 😐 Neutral</label>
+    <label class="option-btn"><input type="radio" name="q2" value="Not very important" required> 🙁 Not very important</label>
+    <label class="option-btn"><input type="radio" name="q2" value="Not important at all" required> 😞 Not important at all</label>
+  </div>
+
+  <label>Q3. How often do you laugh daily?</label>
+  <div class="options">
+    <label class="option-btn"><input type="radio" name="q3" value="More than 10 times" required> 😂 More than 10 times</label>
+    <label class="option-btn"><input type="radio" name="q3" value="5–10 times" required> 😄 5–10 times</label>
+    <label class="option-btn"><input type="radio" name="q3" value="1–4 times" required> 🙂 1–4 times</label>
+    <label class="option-btn"><input type="radio" name="q3" value="Rarely" required> 😐 Rarely</label>
+    <label class="option-btn"><input type="radio" name="q3" value="Hardly ever" required> 😶 Hardly ever</label>
+  </div>
+
+  <label>Q4. What usually triggers your laughter? (Select up to 2)</label>
+  <div class="options">
+    <label class="option-btn"><input type="checkbox" name="q4" value="Jokes, comedy shows"> 🎭 Jokes, comedy shows</label>
+    <label class="option-btn"><input type="checkbox" name="q4" value="Friends or family"> 👨‍👩‍👧‍👦 Friends/family</label>
+    <label class="option-btn"><input type="checkbox" name="q4" value="Funny situations"> 😂 Funny situations</label>
+    <label class="option-btn"><input type="checkbox" name="q4" value="Stress relief"> 😌 Stress relief</label>
+    <label class="option-btn"><input type="checkbox" name="q4" value="Rarely find reasons"> 😐 Rarely find reasons</label>
+  </div>
+
+  <label>Q5. Do you laugh without a specific reason?</label>
+  <div class="options">
+    <label class="option-btn"><input type="radio" name="q5" value="Yes, often" required> 🤪 Yes, often</label>
+    <label class="option-btn"><input type="radio" name="q5" value="Yes, sometimes" required> 🙂 Yes, sometimes</label>
+    <label class="option-btn"><input type="radio" name="q5" value="Rarely" required> 😐 Rarely</label>
+    <label class="option-btn"><input type="radio" name="q5" value="Never" required> 😶 Never</label>
+  </div>
+
+  <label>Q6. What stops you from laughing more often? (Select up to 2)</label>
+  <div class="options">
+    <label class="option-btn"><input type="checkbox" name="q6" value="Work or study pressure"> 💼 Work/study pressure</label>
+    <label class="option-btn"><input type="checkbox" name="q6" value="Personal stress or health"> 🩺 Stress/health issues</label>
+    <label class="option-btn"><input type="checkbox" name="q6" value="Lack of connection"> 🧍‍♂️ Lack of connection</label>
+    <label class="option-btn"><input type="checkbox" name="q6" value="Self-conscious"> 🙈 Self-conscious</label>
+    <label class="option-btn"><input type="checkbox" name="q6" value="I don't know"> 🤷 I don't know</label>
+  </div>
+
+  <label>Q7. Are you aware of laughter’s health benefits?</label>
+  <div class="options">
+    <label class="option-btn"><input type="radio" name="q7" value="Yes, definitely" required> ✅ Yes, definitely</label>
+    <label class="option-btn"><input type="radio" name="q7" value="Somewhat" required> 🤔 Somewhat</label>
+    <label class="option-btn"><input type="radio" name="q7" value="Not really" required> 😕 Not really</label>
+    <label class="option-btn"><input type="radio" name="q7" value="No, not at all" required> ❌ No, not at all</label>
+  </div>
+
+  <label>Q8. Which health benefits do you associate with laughter?</label>
+  <div class="options">
+    <label class="option-btn"><input type="checkbox" name="q8" value="Reduces stress"> 🧘 Reduces stress</label>
+    <label class="option-btn"><input type="checkbox" name="q8" value="Boosts immunity"> 🛡️ Boosts immunity</label>
+    <label class="option-btn"><input type="checkbox" name="q8" value="Heart health"> ❤️ Heart health</label>
+    <label class="option-btn"><input type="checkbox" name="q8" value="Feel-good hormones"> 😊 Feel-good hormones</label>
+    <label class="option-btn"><input type="checkbox" name="q8" value="Not sure"> ❓ Not sure</label>
+  </div>
+
+  <label>Q9. Is laughter therapeutic?</label>
+  <div class="options">
+    <label class="option-btn"><input type="radio" name="q9" value="Strongly agree" required> 💚 Strongly agree</label>
+    <label class="option-btn"><input type="radio" name="q9" value="Agree" required> 👍 Agree</label>
+    <label class="option-btn"><input type="radio" name="q9" value="Neutral" required> 😐 Neutral</label>
+    <label class="option-btn"><input type="radio" name="q9" value="Disagree" required> 👎 Disagree</label>
+    <label class="option-btn"><input type="radio" name="q9" value="Strongly disagree" required> 🚫 Strongly disagree</label>
+  </div>
+
+  <label>Q10. Do you try to include more laughter?</label>
+  <div class="options">
+    <label class="option-btn"><input type="radio" name="q10" value="Yes, regularly" required> 😄 Yes, regularly</label>
+    <label class="option-btn"><input type="radio" name="q10" value="Sometimes" required> 🙂 Sometimes</label>
+    <label class="option-btn"><input type="radio" name="q10" value="Rarely" required> 😐 Rarely</label>
+    <label class="option-btn"><input type="radio" name="q10" value="Never" required> 😶 Never</label>
+  </div>
+
+  <label>Q11. Have you attended laughter yoga before?</label>
+  <div class="options">
+    <label class="option-btn"><input type="radio" name="q11" value="Yes" required> ✅ Yes</label>
+    <label class="option-btn"><input type="radio" name="q11" value="No" required> ❌ No</label>
+  </div>
+
+  <label>Q12. Interested in joining laughter yoga?</label>
+  <div class="options">
+    <label class="option-btn"><input type="radio" name="q12" value="Yes, definitely" required> 🎯 Yes, definitely</label>
+    <label class="option-btn"><input type="radio" name="q12" value="Maybe" required> 🤔 Maybe</label>
+    <label class="option-btn"><input type="radio" name="q12" value="Not interested" required> ❌ Not interested</label>
+  </div>
+
+  <button type="submit">Submit 🎈</button>
+</form>
+
+  </div>
+
+  <div class="container" id="thank-you">
+    <div class="emoji">😂🙌✨</div>
+    <h2>Thank you for your laughter and time!</h2>
+    <p style="text-align:center">Your response has been recorded. Stay happy and keep laughing! 🎭</p>
+  </div>
+</body>
+</html>
